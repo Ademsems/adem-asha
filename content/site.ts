@@ -26,7 +26,6 @@ export const site = {
   headline:
     "Founder at DunajMedia · Senior Marketing Consultant at Fekra Communications",
   location: "Bratislava, Slovakia",
-  email: "ademsems93@gmail.com",
   linkedin: "https://www.linkedin.com/in/adem-%C5%9Fems-asha/",
   dunajmedia: "https://dunajmedia.sk",
   cvPath: "/cv-adem-asha.pdf",

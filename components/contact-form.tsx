@@ -7,13 +7,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 import { site } from "@/content/site";
 
-type FieldErrors = Partial<Record<"name" | "email" | "message" | "consent", string>>;
+type FieldErrors = Partial<
+  Record<"name" | "email" | "phone" | "message" | "consent", string>
+>;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// International format: leading +, then 7–15 digits (spaces stripped first).
+const PHONE_RE = /^\+\d{7,15}$/;
 
 function validate(values: {
   name: string;
   email: string;
+  phone: string;
   message: string;
   consent: boolean;
 }): FieldErrors {
@@ -23,6 +28,10 @@ function validate(values: {
   if (!values.email.trim()) errors.email = "Please enter your email address.";
   else if (!EMAIL_RE.test(values.email.trim()))
     errors.email = "Please enter a valid email address.";
+  if (!values.phone.trim()) errors.phone = "Please enter your phone number.";
+  else if (!PHONE_RE.test(values.phone.replace(/\s+/g, "")))
+    errors.phone =
+      "Enter a valid phone number in international format, e.g. +421 900 123 456";
   if (!values.message.trim()) errors.message = "Please enter a message.";
   else if (values.message.trim().length > 5000) errors.message = "Message is too long.";
   if (!values.consent)
@@ -44,6 +53,7 @@ export function ContactForm() {
     const values = {
       name: String(data.get("name") ?? ""),
       email: String(data.get("email") ?? ""),
+      phone: String(data.get("phone") ?? ""),
       message: String(data.get("message") ?? ""),
       consent: data.get("consent") === "on",
     };
@@ -58,7 +68,10 @@ export function ContactForm() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          ...values,
+          phone: values.phone.replace(/\s+/g, ""),
+        }),
       });
       const body = await res.json().catch(() => ({}));
 
@@ -91,6 +104,7 @@ export function ContactForm() {
           id="name"
           name="name"
           autoComplete="name"
+          required
           placeholder="Your name"
           aria-invalid={Boolean(errors.name)}
           aria-describedby={errors.name ? "name-error" : undefined}
@@ -111,6 +125,7 @@ export function ContactForm() {
           name="email"
           type="email"
           autoComplete="email"
+          required
           placeholder="you@example.com"
           aria-invalid={Boolean(errors.email)}
           aria-describedby={errors.email ? "email-error" : undefined}
@@ -123,12 +138,34 @@ export function ContactForm() {
       </div>
 
       <div>
+        <label htmlFor="phone" className="mb-2 block font-mono text-sm text-heading">
+          Phone number
+        </label>
+        <Input
+          id="phone"
+          name="phone"
+          type="tel"
+          autoComplete="tel"
+          required
+          placeholder="+421 900 000 000"
+          aria-invalid={Boolean(errors.phone)}
+          aria-describedby={errors.phone ? "phone-error" : undefined}
+        />
+        {errors.phone ? (
+          <p id="phone-error" className="mt-2 text-sm text-red-400">
+            {errors.phone}
+          </p>
+        ) : null}
+      </div>
+
+      <div>
         <label htmlFor="message" className="mb-2 block font-mono text-sm text-heading">
           Message
         </label>
         <Textarea
           id="message"
           name="message"
+          required
           placeholder="What can I help you with?"
           aria-invalid={Boolean(errors.message)}
           aria-describedby={errors.message ? "message-error" : undefined}
@@ -166,13 +203,15 @@ export function ContactForm() {
 
       {sendFailed ? (
         <p role="alert" className="rounded-md border border-red-400/50 bg-red-400/10 p-4 text-sm">
-          Sorry — the message couldn&apos;t be sent right now. Please email me
-          directly at{" "}
+          Sorry — the message couldn&apos;t be sent right now. Please try again
+          later, or reach out via{" "}
           <a
-            href={`mailto:${site.email}`}
+            href={site.linkedin}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-aqua transition-opacity hover:opacity-80"
           >
-            {site.email}
+            LinkedIn
           </a>
           .
         </p>

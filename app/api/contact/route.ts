@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const TO_EMAIL = "ademsems93@gmail.com";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// International format: leading +, then 7–15 digits (spaces stripped first).
+const PHONE_RE = /^\+\d{7,15}$/;
 
-type FieldErrors = Partial<Record<"name" | "email" | "message" | "consent", string>>;
+type FieldErrors = Partial<
+  Record<"name" | "email" | "phone" | "message" | "consent", string>
+>;
 
 export async function POST(request: Request) {
   let payload: unknown;
@@ -17,6 +20,8 @@ export async function POST(request: Request) {
   const body = (payload ?? {}) as Record<string, unknown>;
   const name = typeof body.name === "string" ? body.name.trim() : "";
   const email = typeof body.email === "string" ? body.email.trim() : "";
+  const phone =
+    typeof body.phone === "string" ? body.phone.replace(/\s+/g, "") : "";
   const message = typeof body.message === "string" ? body.message.trim() : "";
   const consent = body.consent === true;
 
@@ -25,6 +30,10 @@ export async function POST(request: Request) {
   else if (name.length > 100) errors.name = "Name is too long.";
   if (!email) errors.email = "Please enter your email address.";
   else if (!EMAIL_RE.test(email)) errors.email = "Please enter a valid email address.";
+  if (!phone) errors.phone = "Please enter your phone number.";
+  else if (!PHONE_RE.test(phone))
+    errors.phone =
+      "Enter a valid phone number in international format, e.g. +421 900 123 456";
   if (!message) errors.message = "Please enter a message.";
   else if (message.length > 5000) errors.message = "Message is too long.";
   if (!consent) errors.consent = "Consent is required.";
@@ -47,13 +56,14 @@ export async function POST(request: Request) {
     const resend = new Resend(apiKey);
     const from =
       process.env.CONTACT_FROM_EMAIL || "Adem Asha Website <onboarding@resend.dev>";
+    const to = process.env.CONTACT_TO_EMAIL || "ademsems93@gmail.com";
 
     const { error } = await resend.emails.send({
       from,
-      to: TO_EMAIL,
+      to,
       replyTo: email,
       subject: `New website enquiry from ${name}`,
-      text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
+      text: `Name: ${name}\nEmail: ${email}\nPhone: ${phone}\n\n${message}`,
     });
 
     if (error) {

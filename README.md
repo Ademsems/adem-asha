@@ -23,8 +23,22 @@ Copy `.env.example` to `.env.local` and fill in the values:
 | --- | --- | --- |
 | `RESEND_API_KEY` | For contact form email | API key from [resend.com](https://resend.com). Without it the site still builds and runs — the form shows a friendly fallback with the direct email address. |
 | `CONTACT_FROM_EMAIL` | No | Verified sender address once the domain is verified in Resend, e.g. `Adem Asha <hello@ademasha.com>`. Defaults to `Adem Asha Website <onboarding@resend.dev>`. |
+| `CONTACT_TO_EMAIL` | No | Recipient for contact form submissions. Defaults to `ademsems93@gmail.com`. |
 
-Contact form submissions are sent to `ademsems93@gmail.com`.
+## Personal photos
+
+Photos live in `public/images/`. Drop in JPGs with these exact filenames and
+they appear automatically — no code changes needed:
+
+| File | Where it shows | Recommended size |
+| --- | --- | --- |
+| `public/images/adem-hero.jpg` | Homepage hero (portrait, right of the intro) | 800 × 1000 px (4:5 portrait) |
+| `public/images/adem-about.jpg` | Homepage About section | 800 × 800 px (square) |
+| `public/images/adem-contact.jpg` | Contact page, under the links | 800 × 800 px (square) |
+
+While a file is missing, its slot renders a branded navy placeholder with
+"AA" initials — never a broken image, and no layout shift when the photo is
+added later.
 
 ## Replacing the CV PDF
 
